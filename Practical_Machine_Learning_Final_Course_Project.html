@@ -128,7 +128,7 @@ $(document).ready(function () {
 
 <div id="executive-summary" class="section level2">
 <h2>Executive summary</h2>
-<p>This research explores human activity recognition data of weight lifting excercises. It focuses on how well the a dumbell biceps curl was performed, which was executed and classified in five different fashions; correctly and with four common deviations. The data is explored, tidied and models fitted. A random forest model with standardisation of data yields the highest in sample accuracy of above 99%. We achieved 95% correct predctions on the test set.</p>
+<p>This research explores human activity recognition data of weight lifting excercises. It focuses on how well a dumbell biceps curl was performed, which was executed and classified in five different fashions; correctly and with four common deviations. The data is explored, tidied and models fitted. A random forest model with standardisation of data yields the highest in sample accuracy of above 99%. We achieved 95% correct predctions on the test set.</p>
 <div id="questions" class="section level3">
 <h3>Questions</h3>
 <p>The goal of this project is to predict the manner in which subjects did dumbell excercises, that is whether the excercise was accurately performed or with particular flaws. For more informaiont on the research and data obtained see the appendix with background infromation. We will try to predict the ‘classe’ variable based on measurements.</p>
@@ -164,64 +164,14 @@ dim(training)</code></pre>
 <div id="random-forest" class="section level3">
 <h3>Random forest</h3>
 <p>We will first fit two random forest models, the first with standardisation preprocessing (centering and scaling), the second with principle component analysis.</p>
-<pre class="r"><code>model_rf_st &lt;- train(classe ~ ., preProcess = c(&quot;center&quot;,&quot;scale&quot;), trControl = trainControl(method = &quot;cv&quot;, number = 3, verboseIter = TRUE), data = training, method = &quot;rf&quot;)</code></pre>
-<pre><code>## + Fold1: mtry= 2 
-## - Fold1: mtry= 2 
-## + Fold1: mtry=29 
-## - Fold1: mtry=29 
-## + Fold1: mtry=57 
-## - Fold1: mtry=57 
-## + Fold2: mtry= 2 
-## - Fold2: mtry= 2 
-## + Fold2: mtry=29 
-## - Fold2: mtry=29 
-## + Fold2: mtry=57 
-## - Fold2: mtry=57 
-## + Fold3: mtry= 2 
-## - Fold3: mtry= 2 
-## + Fold3: mtry=29 
-## - Fold3: mtry=29 
-## + Fold3: mtry=57 
-## - Fold3: mtry=57 
-## Aggregating results
-## Selecting tuning parameters
-## Fitting mtry = 2 on full training set</code></pre>
-<pre class="r"><code>model_rf_pca &lt;- train(classe ~ ., preProcess = c(&quot;pca&quot;), trControl = trainControl(method = &quot;cv&quot;, number = 3, verboseIter = TRUE), data = training, method = &quot;rf&quot;)</code></pre>
-<pre><code>## + Fold1: mtry= 2 
-## - Fold1: mtry= 2 
-## + Fold1: mtry=29 
-## - Fold1: mtry=29 
-## + Fold1: mtry=57 
-## - Fold1: mtry=57 
-## + Fold2: mtry= 2 
-## - Fold2: mtry= 2 
-## + Fold2: mtry=29 
-## - Fold2: mtry=29 
-## + Fold2: mtry=57 
-## - Fold2: mtry=57 
-## + Fold3: mtry= 2 
-## - Fold3: mtry= 2 
-## + Fold3: mtry=29 
-## - Fold3: mtry=29 
-## + Fold3: mtry=57 
-## - Fold3: mtry=57 
-## Aggregating results
-## Selecting tuning parameters
-## Fitting mtry = 2 on full training set</code></pre>
+<pre class="r"><code>model_rf_st &lt;- train(classe ~ ., preProcess = c(&quot;center&quot;,&quot;scale&quot;), trControl = trainControl(method = &quot;cv&quot;, number = 3), data = training, method = &quot;rf&quot;)
+
+model_rf_pca &lt;- train(classe ~ ., preProcess = c(&quot;pca&quot;), trControl = trainControl(method = &quot;cv&quot;, number = 3), data = training, method = &quot;rf&quot;)</code></pre>
 </div>
 <div id="k-means" class="section level3">
 <h3>K means</h3>
 <p>To compare models we also apply k means model.</p>
-<pre class="r"><code>model_k &lt;- train(classe ~ ., trControl = trainControl(method = &quot;cv&quot;, number = 3, verboseIter = TRUE), data = training, method = &quot;rpart&quot;)</code></pre>
-<pre><code>## + Fold1: cp=0.03568 
-## - Fold1: cp=0.03568 
-## + Fold2: cp=0.03568 
-## - Fold2: cp=0.03568 
-## + Fold3: cp=0.03568 
-## - Fold3: cp=0.03568 
-## Aggregating results
-## Selecting tuning parameters
-## Fitting cp = 0.0357 on full training set</code></pre>
+<pre class="r"><code>model_k &lt;- train(classe ~ ., trControl = trainControl(method = &quot;cv&quot;, number = 3), data = training, method = &quot;rpart&quot;)</code></pre>
 </div>
 </div>
 <div id="evaluation" class="section level2">
@@ -354,34 +304,22 @@ model_rf_st &lt;- train(classe ~ ., preProcess = c(&quot;center&quot;,&quot;scal
 model_rf_pca &lt;- train(classe ~ ., preProcess = c(&quot;pca&quot;), trControl = trainControl(method = &quot;cv&quot;, number = 3, verboseIter = TRUE), data = training, method = &quot;rf&quot;)</code></pre>
 <pre><code>## + Fold1: mtry= 2 
 ## - Fold1: mtry= 2 
-## + Fold1: mtry=29</code></pre>
-<pre><code>## Warning in randomForest.default(x, y, mtry = param$mtry, ...): invalid
-## mtry: reset to within valid range</code></pre>
-<pre><code>## - Fold1: mtry=29 
-## + Fold1: mtry=57</code></pre>
-<pre><code>## Warning in randomForest.default(x, y, mtry = param$mtry, ...): invalid
-## mtry: reset to within valid range</code></pre>
-<pre><code>## - Fold1: mtry=57 
+## + Fold1: mtry=29 
+## - Fold1: mtry=29 
+## + Fold1: mtry=57 
+## - Fold1: mtry=57 
 ## + Fold2: mtry= 2 
 ## - Fold2: mtry= 2 
-## + Fold2: mtry=29</code></pre>
-<pre><code>## Warning in randomForest.default(x, y, mtry = param$mtry, ...): invalid
-## mtry: reset to within valid range</code></pre>
-<pre><code>## - Fold2: mtry=29 
-## + Fold2: mtry=57</code></pre>
-<pre><code>## Warning in randomForest.default(x, y, mtry = param$mtry, ...): invalid
-## mtry: reset to within valid range</code></pre>
-<pre><code>## - Fold2: mtry=57 
+## + Fold2: mtry=29 
+## - Fold2: mtry=29 
+## + Fold2: mtry=57 
+## - Fold2: mtry=57 
 ## + Fold3: mtry= 2 
 ## - Fold3: mtry= 2 
-## + Fold3: mtry=29</code></pre>
-<pre><code>## Warning in randomForest.default(x, y, mtry = param$mtry, ...): invalid
-## mtry: reset to within valid range</code></pre>
-<pre><code>## - Fold3: mtry=29 
-## + Fold3: mtry=57</code></pre>
-<pre><code>## Warning in randomForest.default(x, y, mtry = param$mtry, ...): invalid
-## mtry: reset to within valid range</code></pre>
-<pre><code>## - Fold3: mtry=57 
+## + Fold3: mtry=29 
+## - Fold3: mtry=29 
+## + Fold3: mtry=57 
+## - Fold3: mtry=57 
 ## Aggregating results
 ## Selecting tuning parameters
 ## Fitting mtry = 2 on full training set</code></pre>
@@ -468,7 +406,7 @@ predictions &lt;- predict(model_rf_st, testing)
 predictions</code></pre>
 <pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
 ## Levels: A B C D E</code></pre>
-<pre class="r"><code>## Scored 19/20 ont the quiz</code></pre>
+<pre class="r"><code>## Scored 19/20 on the quiz comparing predictions to testing set truths</code></pre>
 </div>
 <div id="assignment" class="section level3">
 <h3>Assignment</h3>
@@ -476,7 +414,7 @@ predictions</code></pre>
 </div>
 <div id="background" class="section level3">
 <h3>Background</h3>
-<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. Weight lifting excercise dataset: <a href="http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har" class="uri">http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har</a></p>
+<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. Weight lifting excercise dataset: <a href="http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har" class="uri">http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har</a> Reference Ugulino, W.; Cardador, D.; Vega, K.; Velloso, E.; Milidiu, R.; Fuks, H. Wearable Computing: Accelerometers’ Data Classification of Body Postures and Movements. Proceedings of 21st Brazilian Symposium on Artificial Intelligence. Advances in Artificial Intelligence - SBIA 2012. In: Lecture Notes in Computer Science. , pp. 52-61. Curitiba, PR: Springer Berlin / Heidelberg, 2012. ISBN 978-3-642-34458-9. DOI: 10.1007/978-3-642-34459-6_6.</p>
 </div>
 </div>
 <div class="footnotes">
