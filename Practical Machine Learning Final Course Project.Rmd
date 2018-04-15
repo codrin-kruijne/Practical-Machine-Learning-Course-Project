@@ -1,0 +1,156 @@
+---
+title: "Practical Machine Learning Final Course Project"
+author: "Codrin Kruijne"
+date: "2 April 2018"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+require(dplyr); require(ggplot2); require(caret)
+```
+
+## Executive summary
+
+This research explores human activity recognition data of weight lifting excercises. It focuses on how well the a dumbell biceps curl was performed, which was executed and classified in five different fashions; correctly and with four common deviations.
+The data is explored, tidied and two models fitted. BLABLA
+
+## Questions
+
+The goal of this project is to predict the manner in which subjects did dumbell excercises, that is whether the excercise was accurately performed or with particular flaws. For more informaiont on the research and data obtained see the appendix with background infromation. We will try to predict the 'classe' variable based on measurements.
+
+```{r, echo = FALSE}
+set.seed(123)
+```
+
+## Input data and preprocessing
+
+```{r echo = FALSE, results = 'hide', cache = TRUE}
+training_csv <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", header = TRUE, na.strings = c("", " ", "#DIV/0!"))
+testing_csv <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", header = TRUE, na.strings = c("", " ", "#DIV/0!"))
+
+dim(training_csv)
+dim(testing_csv)
+str(training_csv)
+```
+The training dataset has `r nrow(training_csv)` records and `r ncol(training_csv)` variables. Thes testing set has `r nrow(testing_csv)` with which we will compare our predictions.
+
+## Exploring and selecting data features
+
+This first seven variables are non measurement variables, that is record number, user names and timestamps. The following variables are measurements from the body (belt, arm and forearm) and dumbell. The final classe variable is the classification of the (quality of the) activity. 
+We will exclude the columns that are not related to movement measure, specifically X, timestamps and num/new_window.[^1]
+
+```{r echo = FALSE, results = 'hide', cache = TRUE}
+training_meas <- training_csv[ , -c(1, 3:7)]
+testing_meas <- testing_csv[ , -c(1, 3:7)]
+dim(training_meas)
+str(training_meas)
+```
+
+### Preprocessing
+Exploring the data it look slike there are a lot of missing values. Some of these are to be expected. As the movements were continuously measured, absence of data is just absence of movement. We decide not to impute data.
+
+There are some variables with only values of "#DIV/0!" or "" which is not meaningful, so we will remove these variable. Also, there are a number of calculated variables, which we will drop so we will predict only with raw measured data.
+
+```{r echo = FALSE, results = 'hide', cache = TRUE}
+calc_col <- c("kurtosis_", "skewness_", "max_", "min_", "amplitude_", "var_", "avg_", "stddev_")
+calculated <- grepl(paste(calc_col, collapse = "|"), names(training_meas))
+training <- training_meas[, !calculated]
+testing <- testing_meas[, !calculated]
+dim(training)
+str(training)
+```
+
+We will also normalize by centering and scaling when calling the training functions. Now we can fit some models!
+
+## Machine learning
+
+### Random forest
+We will first fit two random forest models, the first with standardisation preprocessing (centering and scaling), the second with principle component analysis.
+
+```{r echo = FALSE, results = 'hide', cache = TRUE}
+model_rf_st <- train(classe ~ ., preProcess = c("center","scale"), trControl = trainControl(method = "cv", number = 3, verboseIter = TRUE), data = training, method = "rf")
+
+model_rf_pca <- train(classe ~ ., preProcess = c("pca"), trControl = trainControl(method = "cv", number = 3, verboseIter = TRUE), data = training, method = "rf")
+```
+
+### K means clustering
+
+To compare we also apply k means clustering.
+```{r echo = FALSE, results = 'hide', cache = TRUE}
+model_k <- train(classe ~ ., trControl = trainControl(method = "cv", number = 3, verboseIter = TRUE), data = training, method = "rpart")
+table(predict(model_k, training), training$classe)
+```
+
+## Evaluation
+
+### In sample error: Accuracy 
+```{r echo = FALSE, results = 'hide', cache = TRUE}
+model_rf_st
+model_rf_pca
+model_k
+```
+
+Unfortunately the testing dataset does not hold any classified activities, so we cannot apply our models to the testing set to make predicions and compare the results with the truth. We have to rely on in-sample error in the from of accuracy of predicted activity classes
+
+## Conclusion
+
+The standardised random forest model yields highest accuracy of over 99%. Just below it the model with principle component analysis has an accuracy of a bit over 97.5% and the k-means yields only somewhat above 50%.
+
+We explored each record as independent data. However, an excercise is a discrete set of many consecutive movements. How would this need to be taken into account when modeling? Something to learn in a future course!
+
+[^1]: Please note there are two variables, new_window and num_window for which I cannot find any documentation. I thought it might have to do with identifying the 10 repetitions, but the numbering seems off. I have decided to exclude these from modeling.
+
+## Appendix
+
+### Full code
+```{r}
+## Input data and preprocessing
+training_csv <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", header = TRUE, na.strings = c("", " ", "#DIV/0!"))
+testing_csv <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", header = TRUE, na.strings = c("", " ", "#DIV/0!"))
+
+dim(training_csv)
+dim(testing_csv)
+str(training_csv)
+
+## Exploring and selecting data features
+training_meas <- training_csv[ , -c(1, 3:7)]
+testing_meas <- testing_csv[ , -c(1, 3:7)]
+dim(training_meas)
+str(training_meas)
+
+## Preprocessing
+calc_col <- c("kurtosis_", "skewness_", "max_", "min_", "amplitude_", "var_", "avg_", "stddev_")
+calculated <- grepl(paste(calc_col, collapse = "|"), names(training_meas))
+training <- training_meas[, !calculated]
+testing <- testing_meas[, !calculated]
+dim(training)
+str(training)
+
+## Random forest
+model_rf_st <- train(classe ~ ., preProcess = c("center","scale"), trControl = trainControl(method = "cv", number = 3, verboseIter = TRUE), data = training, method = "rf")
+
+model_rf_pca <- train(classe ~ ., preProcess = c("pca"), trControl = trainControl(method = "cv", number = 3, verboseIter = TRUE), data = training, method = "rf")
+
+## K means
+model_k <- train(classe ~ ., trControl = trainControl(method = "cv", number = 3, verboseIter = TRUE), data = training, method = "rpart")
+table(predict(model_k, training), training$classe)
+
+## Evaluation
+model_rf_st
+model_rf_pca
+model_k
+
+### predictions using best model for course week 4 assignment quiz
+predictions <- predict(model_rf_st, testing)
+predictions
+## Scored 19/20 ont the quiz, which seems plausible with 
+```
+
+###Assignment 
+<https://www.coursera.org/learn/practical-machine-learning/peer/R43St/prediction-assignment-writeup>
+Your submission for the Peer Review portion should consist of a link to a Github repo with your R markdown and compiled HTML file describing your analysis. Please constrain the text of the writeup to < 2000 words and the number of figures to be less than 5. 
+
+###  Background
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. 
+Weight lifting excercise dataset: <http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har>
