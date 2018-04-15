@@ -13,12 +13,11 @@ require(dplyr); require(ggplot2); require(caret)
 ## Executive summary
 
 This research explores human activity recognition data of weight lifting excercises. It focuses on how well the a dumbell biceps curl was performed, which was executed and classified in five different fashions; correctly and with four common deviations.
-
-blabla
+The data is explored, tidied and two models fitted. BLABLA
 
 ## Questions
 
-The goal of this project is to predict the manner in which subjects did dumbell excercises, that is whether the excercise was accurately performed or with particular deviation. For more informaiont on the research and data obtained see the appendix with background infromation. We will therfore try to predict the 'classe' variable.
+The goal of this project is to predict the manner in which subjects did dumbell excercises, that is whether the excercise was accurately performed or with particular flaws. For more informaiont on the research and data obtained see the appendix with background infromation. We will try to predict the 'classe' variable based on measurements.
 
 ```{r, echo = FALSE}
 set.seed(123)
@@ -26,12 +25,13 @@ set.seed(123)
 
 ## Input data and preprocessing
 
-```{r echo = FALSE}
-training <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", header = TRUE, na.strings = c("", " ", "#DIV/0!"))
-testing <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", header = TRUE, na.strings = c("", " ", "#DIV/0!"))
-dim(training)
-dim(testing)
-str(training)
+```{r echo = FALSE, cache = TRUE}
+training_csv <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", header = TRUE, na.strings = c("", " ", "#DIV/0!"))
+testing_csv <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", header = TRUE, na.strings = c("", " ", "#DIV/0!"))
+
+dim(training_csv)
+dim(testing_csv)
+str(training_csv)
 ```
 The training dataset has `r nrow(training)` records and `r ncol(training)` variables. Thes testing set has `r nrow(testing)` with which we will compare our predictions.
 
@@ -40,52 +40,53 @@ The training dataset has `r nrow(training)` records and `r ncol(training)` varia
 This first seven variables are non measurement variables, that is record number, user names and timestamps. The following variables are measurements from the body (belt, arm and forearm) and dumbell. The final classe variable is the classification of the (quality of the) activity. 
 We will exclude the columns that are not related to movement measure, specifically X, timestamps and num/new_window.[^1]
 
-```{r, echo = FALSE}
-testing <- testing[ , -c(1, 3:7)]
-training <- training[ , -c(1, 3:7)]
-dim(training)
-dim(testing)
-str(training)
+```{r, echo = FALSE, cache = TRUE}
+training_meas <- training_csv[ , -c(1, 3:7)]
+
+dim(training_meas)
+str(training_meas)
 ```
 
 ### Preprocessing
-Exploring the data it look slike there are a lot of missing values. Some these are to be expected. As the movements were continuously measured, absence of data is just absence of movement. We decide not to impute data.
+Exploring the data it look slike there are a lot of missing values. Some of these are to be expected. As the movements were continuously measured, absence of data is just absence of movement. We decide not to impute data.
 
-There are some variables with only values of "#DIV/0!" or "" which is not meaningful, so we will remove these variable.
+There are some variables with only values of "#DIV/0!" or "" which is not meaningful, so we will remove these variable. Also, there are a number of calculated variables, whcich we will drop so we will predict only with raw data.
+
+```{r echo = FALSE, cache = TRUE}
+calc_col <- c("kurtosis_", "skewness_", "max_", "min_", "amplitude_", "var_", "avg_", "stddev_")
+calculated <- grepl(paste(calc_col, collapse = "|"), names(training_meas))
+training <- training_meas[, !calculated]
+
+dim(training)
+str(training)
+```
+
+We will also normalize by centering and scaling when calling the training functions. Now we can fit some models!
+
+## Machine learning
+
+### Algorithms and parameters
+We decide to three random forest models and to compare the results; a full model, one with preprocessing principle components and one that adds standardisation.
 
 ```{r echo = FALSE}
-training <- subset(training, select = -c(kurtosis_yaw_belt, skewness_yaw_belt, amplitude_yaw_belt, kurtosis_yaw_dumbbell, skewness_yaw_dumbbell, amplitude_yaw_dumbbell))
-testing <- subset(testing, select = -c(kurtosis_yaw_belt, skewness_yaw_belt, amplitude_yaw_belt, kurtosis_yaw_dumbbell, skewness_yaw_dumbbell, amplitude_yaw_dumbbell))
-dim(training)
-dim(testing)
-str(training)
-```
+## model_rf_norm <- train(classe ~ ., preProcess = c("center","scale"), trControl = trainControl(method = "cv", number = 3, verboseIter = TRUE), data = training, method = "rf")
 
-The dataset has a number of variables that are interpreted as a factor, while they are numbers, so we change their data type.
-```{r}
-change_factor <- sapply(training, is.factor)
-change_factor["user_name"] <- FALSE
-change_factor["classe"] <- FALSE
-training[, change_factor] <- sapply(training[, change_factor], as.numeric)
-dim(training)
-dim(testing)
-str(training)
-```
+## model_rf_pca <- train(classe ~ ., preProcess = c("pca"), trControl = trainControl(method = "cv", number = 3, verboseIter = TRUE), data = training, method = "rf")
 
-
-
-
-## Machine learning algorithms and parameters
-
-```{r, cache = TRUE, echo = FALSE}
-
+## model_gam <- train(classe ~ ., preProcess = c("center","scale", "pca"), trControl = trainControl(method = "cv", number = 3, verboseIter = TRUE), data = training, method = "gam")
 ```
 
 ## Evaluation and conclusions
 
-### Cross validation
+### Accuracy 
+```{r echo = FALSE}
+model_rf
+model_gbm
+```
 
-### Out of sample error
+### Prediction evaluation
+
+
 
 ```{r, cache = TRUE, echo = FALSE}
 
