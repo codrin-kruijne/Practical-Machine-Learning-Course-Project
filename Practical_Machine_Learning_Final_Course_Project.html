@@ -127,7 +127,7 @@ $(document).ready(function () {
 
 <div id="executive-summary" class="section level2">
 <h2>Executive summary</h2>
-<p>This research explores human activity recognition data of weight lifting excercises. It focuses on how well the a dumbell biceps curl was performed, which was executed and classified in five different fashions; correctly and with four common deviations. The data is explored, tidied and two models fitted. BLABLA</p>
+<p>This research explores human activity recognition data of weight lifting excercises. It focuses on how well the a dumbell biceps curl was performed, which was executed and classified in five different fashions; correctly and with four common deviations. The data is explored, tidied and models fitted. A random forest model with standardisation of data yields the highest in sample accuracy of above 99%. We achieved 95% correct predctions on the test set.</p>
 </div>
 <div id="questions" class="section level2">
 <h2>Questions</h2>
@@ -135,8 +135,55 @@ $(document).ready(function () {
 </div>
 <div id="input-data-and-preprocessing" class="section level2">
 <h2>Input data and preprocessing</h2>
+<p>The training dataset has 19622 records and 160 variables. Thes testing set has 20 with which we will compare our predictions.</p>
+</div>
+<div id="exploring-and-selecting-data-features" class="section level2">
+<h2>Exploring and selecting data features</h2>
+<p>This first seven variables are non measurement variables, that is record number, user names and timestamps. The following variables are measurements from the body (belt, arm and forearm) and dumbell. The final classe variable is the classification of the (quality of the) activity. We will exclude the columns that are not related to movement measure, specifically X, timestamps and num/new_window.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></p>
+<div id="preprocessing" class="section level3">
+<h3>Preprocessing</h3>
+<p>Exploring the data it look slike there are a lot of missing values. Some of these are to be expected. As the movements were continuously measured, absence of data is just absence of movement. We decide not to impute data.</p>
+<p>There are some variables with only values of “#DIV/0!” or “” which is not meaningful, so we will remove these variable. Also, there are a number of calculated variables, which we will drop so we will predict only with raw measured data.</p>
+<p>We will also normalize by centering and scaling when calling the training functions. Now we can fit some models!</p>
+</div>
+</div>
+<div id="machine-learning" class="section level2">
+<h2>Machine learning</h2>
+<div id="random-forest" class="section level3">
+<h3>Random forest</h3>
+<p>We will first fit two random forest models, the first with standardisation preprocessing (centering and scaling), the second with principle component analysis.</p>
+</div>
+<div id="k-means" class="section level3">
+<h3>K means</h3>
+<p>To compare we also apply k means model.</p>
+</div>
+</div>
+<div id="evaluation" class="section level2">
+<h2>Evaluation</h2>
+<div id="in-sample-error-accuracy" class="section level3">
+<h3>In sample error: Accuracy</h3>
+<p>Unfortunately the testing dataset does not hold any classified activities, so we cannot apply our models to the testing set to make predicions and compare the results with the truth. We have to rely on in-sample error in the from of accuracy of predicted activity classes.</p>
+<p>The standardised random forest model yields highest accuracy of over 99%. Just below it the model with principle component analysis has an accuracy of a bit over 97.5% and the k-means yields only somewhat above 50%.</p>
+</div>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>We achieved 95% correct predctions on the test set through the course quiz. As the testing set does noet have classified activity classes, we cannot create predictions to compare them to.</p>
+<p>We explored each record as independent data. However, an excercise is a discrete set of many consecutive movements. How would this need to be taken into account when modeling? Something to learn in a future course!</p>
+</div>
+<div id="appendix" class="section level2">
+<h2>Appendix</h2>
+<div id="full-code" class="section level3">
+<h3>Full code</h3>
+<pre class="r"><code>## Input data and preprocessing
+training_csv &lt;- read.csv(&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv&quot;, header = TRUE, na.strings = c(&quot;&quot;, &quot; &quot;, &quot;#DIV/0!&quot;))
+testing_csv &lt;- read.csv(&quot;https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv&quot;, header = TRUE, na.strings = c(&quot;&quot;, &quot; &quot;, &quot;#DIV/0!&quot;))
+
+dim(training_csv)</code></pre>
 <pre><code>## [1] 19622   160</code></pre>
+<pre class="r"><code>dim(testing_csv)</code></pre>
 <pre><code>## [1]  20 160</code></pre>
+<pre class="r"><code>str(training_csv)</code></pre>
 <pre><code>## 'data.frame':    19622 obs. of  160 variables:
 ##  $ X                       : int  1 2 3 4 5 6 7 8 9 10 ...
 ##  $ user_name               : Factor w/ 6 levels &quot;adelmo&quot;,&quot;carlitos&quot;,..: 2 2 2 2 2 2 2 2 2 2 ...
@@ -238,12 +285,12 @@ $(document).ready(function () {
 ##  $ min_yaw_dumbbell        : num  NA NA NA NA NA NA NA NA NA NA ...
 ##  $ amplitude_roll_dumbbell : Factor w/ 388 levels &quot;0&quot;,&quot;0.96&quot;,&quot;1&quot;,..: 388 388 388 388 388 388 388 388 388 388 ...
 ##   [list output truncated]</code></pre>
-<p>The training dataset has 19622 records and 160 variables. Thes testing set has 20 with which we will compare our predictions.</p>
-</div>
-<div id="exploring-and-selecting-data-features" class="section level2">
-<h2>Exploring and selecting data features</h2>
-<p>This first seven variables are non measurement variables, that is record number, user names and timestamps. The following variables are measurements from the body (belt, arm and forearm) and dumbell. The final classe variable is the classification of the (quality of the) activity. We will exclude the columns that are not related to movement measure, specifically X, timestamps and num/new_window.<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></p>
+<pre class="r"><code>## Exploring and selecting data features
+training_meas &lt;- training_csv[ , -c(1, 3:7)]
+testing_meas &lt;- testing_csv[ , -c(1, 3:7)]
+dim(training_meas)</code></pre>
 <pre><code>## [1] 19622   154</code></pre>
+<pre class="r"><code>str(training_meas)</code></pre>
 <pre><code>## 'data.frame':    19622 obs. of  154 variables:
 ##  $ user_name               : Factor w/ 6 levels &quot;adelmo&quot;,&quot;carlitos&quot;,..: 2 2 2 2 2 2 2 2 2 2 ...
 ##  $ roll_belt               : num  1.41 1.41 1.42 1.48 1.48 1.45 1.42 1.42 1.43 1.45 ...
@@ -345,11 +392,14 @@ $(document).ready(function () {
 ##  $ avg_roll_dumbbell       : Factor w/ 398 levels &quot;-0.3235&quot;,&quot;-0.6124&quot;,..: 398 398 398 398 398 398 398 398 398 398 ...
 ##  $ stddev_roll_dumbbell    : Factor w/ 392 levels &quot;0&quot;,&quot;0.1811&quot;,&quot;0.2994&quot;,..: 392 392 392 392 392 392 392 392 392 392 ...
 ##   [list output truncated]</code></pre>
-<div id="preprocessing" class="section level3">
-<h3>Preprocessing</h3>
-<p>Exploring the data it look slike there are a lot of missing values. Some of these are to be expected. As the movements were continuously measured, absence of data is just absence of movement. We decide not to impute data.</p>
-<p>There are some variables with only values of “#DIV/0!” or “” which is not meaningful, so we will remove these variable. Also, there are a number of calculated variables, which we will drop so we will predict only with raw measured data.</p>
+<pre class="r"><code>## Preprocessing
+calc_col &lt;- c(&quot;kurtosis_&quot;, &quot;skewness_&quot;, &quot;max_&quot;, &quot;min_&quot;, &quot;amplitude_&quot;, &quot;var_&quot;, &quot;avg_&quot;, &quot;stddev_&quot;)
+calculated &lt;- grepl(paste(calc_col, collapse = &quot;|&quot;), names(training_meas))
+training &lt;- training_meas[, !calculated]
+testing &lt;- testing_meas[, !calculated]
+dim(training)</code></pre>
 <pre><code>## [1] 19622    54</code></pre>
+<pre class="r"><code>str(training)</code></pre>
 <pre><code>## 'data.frame':    19622 obs. of  54 variables:
 ##  $ user_name           : Factor w/ 6 levels &quot;adelmo&quot;,&quot;carlitos&quot;,..: 2 2 2 2 2 2 2 2 2 2 ...
 ##  $ roll_belt           : num  1.41 1.41 1.42 1.48 1.48 1.45 1.42 1.42 1.43 1.45 ...
@@ -405,14 +455,8 @@ $(document).ready(function () {
 ##  $ magnet_forearm_y    : num  654 661 658 658 655 660 659 660 653 656 ...
 ##  $ magnet_forearm_z    : num  476 473 469 469 473 478 470 474 476 473 ...
 ##  $ classe              : Factor w/ 5 levels &quot;A&quot;,&quot;B&quot;,&quot;C&quot;,&quot;D&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...</code></pre>
-<p>We will also normalize by centering and scaling when calling the training functions. Now we can fit some models!</p>
-</div>
-</div>
-<div id="machine-learning" class="section level2">
-<h2>Machine learning</h2>
-<div id="random-forest" class="section level3">
-<h3>Random forest</h3>
-<p>We will first fit two random forest models, the first with standardisation preprocessing (centering and scaling), the second with principle component analysis.</p>
+<pre class="r"><code>## Random forest
+model_rf_st &lt;- train(classe ~ ., preProcess = c(&quot;center&quot;,&quot;scale&quot;), trControl = trainControl(method = &quot;cv&quot;, number = 3, verboseIter = TRUE), data = training, method = &quot;rf&quot;)</code></pre>
 <pre><code>## + Fold1: mtry= 2 
 ## - Fold1: mtry= 2 
 ## + Fold1: mtry=29 
@@ -433,7 +477,8 @@ $(document).ready(function () {
 ## - Fold3: mtry=57 
 ## Aggregating results
 ## Selecting tuning parameters
-## Fitting mtry = 2 on full training set</code></pre>
+## Fitting mtry = 29 on full training set</code></pre>
+<pre class="r"><code>model_rf_pca &lt;- train(classe ~ ., preProcess = c(&quot;pca&quot;), trControl = trainControl(method = &quot;cv&quot;, number = 3, verboseIter = TRUE), data = training, method = &quot;rf&quot;)</code></pre>
 <pre><code>## + Fold1: mtry= 2 
 ## - Fold1: mtry= 2 
 ## + Fold1: mtry=29</code></pre>
@@ -467,10 +512,8 @@ $(document).ready(function () {
 ## Aggregating results
 ## Selecting tuning parameters
 ## Fitting mtry = 2 on full training set</code></pre>
-</div>
-<div id="k-means-clustering" class="section level3">
-<h3>K means clustering</h3>
-<p>To compare we also apply k means clustering.</p>
+<pre class="r"><code>## K means
+model_k &lt;- train(classe ~ ., trControl = trainControl(method = &quot;cv&quot;, number = 3, verboseIter = TRUE), data = training, method = &quot;rpart&quot;)</code></pre>
 <pre><code>## + Fold1: cp=0.03568 
 ## - Fold1: cp=0.03568 
 ## + Fold2: cp=0.03568 
@@ -480,6 +523,7 @@ $(document).ready(function () {
 ## Aggregating results
 ## Selecting tuning parameters
 ## Fitting cp = 0.0357 on full training set</code></pre>
+<pre class="r"><code>table(predict(model_k, training), training$classe)</code></pre>
 <pre><code>##    
 ##        A    B    C    D    E
 ##   A 5080 1581 1587 1449  524
@@ -487,13 +531,8 @@ $(document).ready(function () {
 ##   C  405  930 1727 1199  966
 ##   D    0    0    0    0    0
 ##   E   14    0    0    0 1631</code></pre>
-</div>
-</div>
-<div id="evaluation" class="section level2">
-<h2>Evaluation</h2>
-<div id="in-sample-error-accuracy" class="section level3">
-<h3>In sample error: Accuracy</h3>
-<pre class="r"><code>model_rf_st</code></pre>
+<pre class="r"><code>## Evaluation
+model_rf_st</code></pre>
 <pre><code>## Random Forest 
 ## 
 ## 19622 samples
@@ -502,16 +541,16 @@ $(document).ready(function () {
 ## 
 ## Pre-processing: centered (57), scaled (57) 
 ## Resampling: Cross-Validated (3 fold) 
-## Summary of sample sizes: 13081, 13082, 13081 
+## Summary of sample sizes: 13082, 13082, 13080 
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa    
 ##    2    0.9921007  0.9900070
-##   29    0.9921007  0.9900069
-##   57    0.9860871  0.9823995
+##   29    0.9932732  0.9914901
+##   57    0.9876673  0.9843972
 ## 
 ## Accuracy was used to select the optimal model using the largest value.
-## The final value used for the model was mtry = 2.</code></pre>
+## The final value used for the model was mtry = 29.</code></pre>
 <pre class="r"><code>model_rf_pca</code></pre>
 <pre><code>## Random Forest 
 ## 
@@ -522,13 +561,13 @@ $(document).ready(function () {
 ## Pre-processing: principal component signal extraction (57), centered
 ##  (57), scaled (57) 
 ## Resampling: Cross-Validated (3 fold) 
-## Summary of sample sizes: 13081, 13082, 13081 
+## Summary of sample sizes: 13082, 13081, 13081 
 ## Resampling results across tuning parameters:
 ## 
 ##   mtry  Accuracy   Kappa    
-##    2    0.9741106  0.9672440
-##   29    0.9653452  0.9561609
-##   57    0.9647846  0.9554504
+##    2    0.9741616  0.9673109
+##   29    0.9628990  0.9530562
+##   57    0.9633066  0.9535718
 ## 
 ## Accuracy was used to select the optimal model using the largest value.
 ## The final value used for the model was mtry = 2.</code></pre>
@@ -545,34 +584,26 @@ $(document).ready(function () {
 ## Resampling results across tuning parameters:
 ## 
 ##   cp          Accuracy   Kappa     
-##   0.03567868  0.5272654  0.39102840
-##   0.05998671  0.4086148  0.19578382
-##   0.11515454  0.3105684  0.03988119
+##   0.03567868  0.5026485  0.35030555
+##   0.05998671  0.4505170  0.26621206
+##   0.11515454  0.3377857  0.08137415
 ## 
 ## Accuracy was used to select the optimal model using the largest value.
 ## The final value used for the model was cp = 0.03567868.</code></pre>
-<p>Unfortunately the testing dataset does not hold any classified activities, so we cannot apply our models tot the testing set to make predicions and compare the results with the truth. We have to rely on in-sample error in the from of accuracy of predicted activity classes</p>
-</div>
-</div>
-<div id="conclusion" class="section level2">
-<h2>Conclusion</h2>
-<p>The standardised random forest model yields highest accuracy of over 99%. Just below it the model with principle component analysis has an accuracy of a bit over 97.5% and the k-means clustering yields only somewhat above 50%.</p>
-<p>We explored each record as independent data. However, an excercise is a discrete set of many consecutive movements. How would this need to be taken into account when modeling? Something to learn in a future course!</p>
-</div>
-<div id="appendix" class="section level2">
-<h2>Appendix</h2>
-<p>Assignment: <a href="https://www.coursera.org/learn/practical-machine-learning/peer/R43St/prediction-assignment-writeup" class="uri">https://www.coursera.org/learn/practical-machine-learning/peer/R43St/prediction-assignment-writeup</a> Your submission for the Peer Review portion should consist of a link to a Github repo with your R markdown and compiled HTML file describing your analysis. Please constrain the text of the writeup to &lt; 2000 words and the number of figures to be less than 5.</p>
-<div id="background" class="section level3">
-<h3>Background</h3>
-<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. Weight lifting excercise dataset: <a href="http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har" class="uri">http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har</a></p>
-</div>
-<div id="full-code" class="section level3">
-<h3>Full code</h3>
 <pre class="r"><code>### predictions using best model for course week 4 assignment quiz
 predictions &lt;- predict(model_rf_st, testing)
 predictions</code></pre>
 <pre><code>##  [1] B A B A A E D B A A B C B A E E A B B B
 ## Levels: A B C D E</code></pre>
+<pre class="r"><code>## Scored 19/20 ont the quiz, which seems plausible with </code></pre>
+</div>
+<div id="assignment" class="section level3">
+<h3>Assignment</h3>
+<p><a href="https://www.coursera.org/learn/practical-machine-learning/peer/R43St/prediction-assignment-writeup" class="uri">https://www.coursera.org/learn/practical-machine-learning/peer/R43St/prediction-assignment-writeup</a> Your submission for the Peer Review portion should consist of a link to a Github repo with your R markdown and compiled HTML file describing your analysis. Please constrain the text of the writeup to &lt; 2000 words and the number of figures to be less than 5.</p>
+</div>
+<div id="background" class="section level3">
+<h3>Background</h3>
+<p>Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. Weight lifting excercise dataset: <a href="http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har" class="uri">http://web.archive.org/web/20161224072740/http:/groupware.les.inf.puc-rio.br/har</a></p>
 </div>
 </div>
 <div class="footnotes">

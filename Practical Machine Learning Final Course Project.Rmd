@@ -13,7 +13,7 @@ require(dplyr); require(ggplot2); require(caret)
 ## Executive summary
 
 This research explores human activity recognition data of weight lifting excercises. It focuses on how well the a dumbell biceps curl was performed, which was executed and classified in five different fashions; correctly and with four common deviations.
-The data is explored, tidied and two models fitted. BLABLA
+The data is explored, tidied and models fitted. A random forest model with standardisation of data yields the highest in sample accuracy of above 99%. We achieved 95% correct predctions on the test set.
 
 ## Questions
 
@@ -68,16 +68,16 @@ We will also normalize by centering and scaling when calling the training functi
 ### Random forest
 We will first fit two random forest models, the first with standardisation preprocessing (centering and scaling), the second with principle component analysis.
 
-```{r echo = FALSE, results = 'hide', cache = TRUE}
+```{r cache=TRUE, include=FALSE, results='hide', warning=FALSE}
 model_rf_st <- train(classe ~ ., preProcess = c("center","scale"), trControl = trainControl(method = "cv", number = 3, verboseIter = TRUE), data = training, method = "rf")
 
 model_rf_pca <- train(classe ~ ., preProcess = c("pca"), trControl = trainControl(method = "cv", number = 3, verboseIter = TRUE), data = training, method = "rf")
 ```
 
-### K means clustering
+### K means
 
-To compare we also apply k means clustering.
-```{r echo = FALSE, results = 'hide', cache = TRUE}
+To compare we also apply k means model.
+```{r cache=TRUE, include=FALSE, results='hide'}
 model_k <- train(classe ~ ., trControl = trainControl(method = "cv", number = 3, verboseIter = TRUE), data = training, method = "rpart")
 table(predict(model_k, training), training$classe)
 ```
@@ -85,17 +85,19 @@ table(predict(model_k, training), training$classe)
 ## Evaluation
 
 ### In sample error: Accuracy 
-```{r echo = FALSE, results = 'hide', cache = TRUE}
+```{r cache=TRUE, include=FALSE, results='hide'}
 model_rf_st
 model_rf_pca
 model_k
 ```
 
-Unfortunately the testing dataset does not hold any classified activities, so we cannot apply our models to the testing set to make predicions and compare the results with the truth. We have to rely on in-sample error in the from of accuracy of predicted activity classes
+Unfortunately the testing dataset does not hold any classified activities, so we cannot apply our models to the testing set to make predicions and compare the results with the truth. We have to rely on in-sample error in the from of accuracy of predicted activity classes.
+
+The standardised random forest model yields highest accuracy of over 99%. Just below it the model with principle component analysis has an accuracy of a bit over 97.5% and the k-means yields only somewhat above 50%.
 
 ## Conclusion
 
-The standardised random forest model yields highest accuracy of over 99%. Just below it the model with principle component analysis has an accuracy of a bit over 97.5% and the k-means yields only somewhat above 50%.
+We achieved 95% correct predctions on the test set through the course quiz. As the testing set does noet have classified activity classes, we cannot create predictions to compare them to.
 
 We explored each record as independent data. However, an excercise is a discrete set of many consecutive movements. How would this need to be taken into account when modeling? Something to learn in a future course!
 
@@ -104,7 +106,7 @@ We explored each record as independent data. However, an excercise is a discrete
 ## Appendix
 
 ### Full code
-```{r}
+```{r cache=TRUE, echo=TRUE}
 ## Input data and preprocessing
 training_csv <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", header = TRUE, na.strings = c("", " ", "#DIV/0!"))
 testing_csv <- read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", header = TRUE, na.strings = c("", " ", "#DIV/0!"))
